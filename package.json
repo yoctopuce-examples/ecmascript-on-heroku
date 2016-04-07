@@ -2,9 +2,9 @@
   "name": "ecmascript-on-heroku",
   "author": "Yoctopuce",
   "description": "Yoctopuce Heroku example",
-  "main": "index.js",
+  "main": "build.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node build.js"
   },
   "dependencies": {
     "express": "4.13.3",
