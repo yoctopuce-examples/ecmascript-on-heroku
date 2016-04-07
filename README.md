@@ -158,5 +158,6 @@ $ heroku open
 ## Configuring the YoctoHub
 
 You only need to configure the <product>YoctoHub-GSM-3G-EU</product> so that it connects itself to our Heroku server. Use the following settings, but simply replace the URL by that of your application, as it shows in your browser when you are viewing the interface:
+
 ![WebSocket callback configuration](https://www.yoctopuce.com/EN/configuration_callback_1.png)
 
