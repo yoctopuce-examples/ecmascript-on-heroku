@@ -7,31 +7,33 @@ var express = YAPI._nodeRequire('express');
 
 async function WebSocketCallbackHandler(ws)
 {
-    var location = url.parse(ws.upgradeReq.url, true);
-    console.log('Websocket request on', location.pathname);
-
     let errmsg = new YErrorMsg();
     let yctx = new YAPIContext();
     try {
-        if(await yctx.RegisterHubWebSocketCallback(ws, errmsg) != YAPI.SUCCESS) {
+        // Initialize library
+        if(await yctx.RegisterHubWebSocketCallback(ws, errmsg)!=YAPI.SUCCESS){
             console.log('HTTP callback error: '+errmsg);
             yctx.FreeAPI();
             return;
         }
-        await yctx.UpdateDeviceList(errmsg);
 
-        let module = YModule.FirstModuleInContext(yctx);
-        while(module) {
-            console.log('Device connected: '+(await module.get_friendlyName()));
-            module = module.nextModule();
+        // Enumerate relays
+        await yctx.UpdateDeviceList(errmsg);
+        let relay = YRelay.FirstRelayInContext(yctx);
+        while(relay) {
+            console.log('Relay found: '+(await module.get_friendlyName()));
+            relay = relay.nextRelay();
         }
 
-        console.log('Websocket request completed');
+        // Stay connected
+        for(let i = 0; i < 100; i++) {
+            await yctx.Sleep(300);
+        }
     } catch(e) {
         console.log('Caught exception in WS code', e);
     }
+    // Free ressources
     yctx.FreeAPI();
-    console.log('Bye');
 }
 
 YAPI.LogUnhandledPromiseRejections();
@@ -44,8 +46,11 @@ wss.on('connection', WebSocketCallbackHandler);
 var app = express();
 server.on('request', app);
 app.set('port', (process.env.PORT || 5000));
+app.use(express.static(__dirname + '/public'));
+app.set('views', __dirname + '/views');
+app.set('view engine', 'jade');
 app.get('/', function(request, response) {
-    response.send('Hello world');
+    response.render('index');
 });
 
 // Start web server
