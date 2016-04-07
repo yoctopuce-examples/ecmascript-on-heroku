@@ -26025,6 +26025,7 @@ $__System.registerDynamic("39", ["3", "2", "4", "5", "6", "7", "8", "9", "a", "b
 $__System.register("1", ["39"], function($__export) {
   "use strict";
   var YAPI,
+      YRelay,
       YAPIContext,
       YErrorMsg,
       _regeneratorRuntime,
@@ -26033,12 +26034,14 @@ $__System.register("1", ["39"], function($__export) {
       url,
       WebSocketServer,
       express,
+      Relays,
       WebSocketCallbackHandler,
       wss,
       app;
   return {
     setters: [function($__m) {
       YAPI = $__m.YAPI;
+      YRelay = $__m.YRelay;
       YAPIContext = $__m.YAPIContext;
       YErrorMsg = $__m.YErrorMsg;
     }],
@@ -26503,79 +26506,72 @@ $__System.register("1", ["39"], function($__export) {
       url = YAPI._nodeRequire('url');
       WebSocketServer = YAPI._nodeRequire('ws').Server;
       express = YAPI._nodeRequire('express');
+      Relays = {};
       WebSocketCallbackHandler = (function() {
         var ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(ws) {
-          var errmsg,
+          var hwids,
+              errmsg,
               yctx,
               relay,
+              hwid,
               i;
           return _regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
               switch (_context.prev = _context.next) {
                 case 0:
+                  hwids = [];
                   errmsg = new YErrorMsg();
                   yctx = new YAPIContext();
-                  _context.prev = 2;
-                  _context.next = 5;
+                  _context.prev = 3;
+                  _context.next = 6;
                   return yctx.RegisterHubWebSocketCallback(ws, errmsg);
-                case 5:
+                case 6:
                   _context.t0 = _context.sent;
                   _context.t1 = YAPI.SUCCESS;
                   if (!(_context.t0 != _context.t1)) {
-                    _context.next = 11;
+                    _context.next = 12;
                     break;
                   }
                   console.log('HTTP callback error: ' + errmsg);
                   yctx.FreeAPI();
                   return _context.abrupt('return');
-                case 11:
-                  _context.next = 13;
-                  return yctx.UpdateDeviceList(errmsg);
-                case 13:
+                case 12:
                   relay = YRelay.FirstRelayInContext(yctx);
-                case 14:
+                case 13:
                   if (!relay) {
-                    _context.next = 24;
+                    _context.next = 22;
                     break;
                   }
-                  _context.t2 = console;
-                  _context.next = 18;
-                  return module.get_friendlyName();
-                case 18:
-                  _context.t3 = _context.sent;
-                  _context.t4 = 'Relay found: ' + _context.t3;
-                  _context.t2.log.call(_context.t2, _context.t4);
+                  _context.next = 16;
+                  return relay.get_hardwareId();
+                case 16:
+                  hwid = _context.sent;
+                  hwids.push(hwid);
+                  Relays[hwid] = relay;
                   relay = relay.nextRelay();
-                  _context.next = 14;
+                  _context.next = 13;
                   break;
+                case 22:
+                  _context.next = 24;
+                  return yctx.Sleep(30000);
                 case 24:
-                  i = 0;
-                case 25:
-                  if (!(i < 100)) {
-                    _context.next = 31;
-                    break;
+                  _context.next = 29;
+                  break;
+                case 26:
+                  _context.prev = 26;
+                  _context.t2 = _context['catch'](3);
+                  console.log('Caught exception in WS code', _context.t2);
+                case 29:
+                  for (i = 0; i < hwids.length; i++) {
+                    delete Relays[hwids[i]];
                   }
-                  _context.next = 28;
-                  return yctx.Sleep(300);
-                case 28:
-                  i++;
-                  _context.next = 25;
-                  break;
-                case 31:
-                  _context.next = 36;
-                  break;
-                case 33:
-                  _context.prev = 33;
-                  _context.t5 = _context['catch'](2);
-                  console.log('Caught exception in WS code', _context.t5);
-                case 36:
                   yctx.FreeAPI();
-                case 37:
+                case 31:
                 case 'end':
                   return _context.stop();
               }
             }
-          }, _callee, this, [[2, 33]]);
+          }, _callee, this, [[3, 26]]);
         }));
         return function WebSocketCallbackHandler(_x) {
           return ref.apply(this, arguments);
@@ -26591,6 +26587,10 @@ $__System.register("1", ["39"], function($__export) {
       app.set('views', __dirname + '/views');
       app.set('view engine', 'jade');
       app.get('/', function(request, response) {
+        if (request.query.relay && Relays[request.query.relay]) {
+          Relays[request.query.relay].set_state(request.query.state);
+        }
+        app.locals.Relays = Relays;
         response.render('index');
       });
       server.listen(app.get('port'), function() {

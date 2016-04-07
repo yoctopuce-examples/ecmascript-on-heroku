@@ -2,10 +2,16 @@ doctype html
 html
     head
         title Simple remote control UI
+        link(href='/css/demo.css', rel='stylesheet')
     body
         h1 Simple remote control UI
         p
             Yoctopuce Relays currently on-line:
-            ul
-                each serial in Relays
-                    li = serial
+            table.noborder
+                each relay, hardwareId in Relays
+                    tr
+                        td #{hardwareId}
+                        td
+                            a.button(href='/?relay='+hardwareId+'&state=1') turn ON
+                        td
+                            a.button(href='/?relay='+hardwareId+'&state=0') turn OFF

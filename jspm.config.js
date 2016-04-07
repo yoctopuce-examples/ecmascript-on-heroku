@@ -1,5 +1,14 @@
 SystemJS.config({
-  transpiler: "plugin-babel"
+  transpiler: "plugin-babel",
+  babelOptions: {
+    "stage": 3,
+    "compact": false,
+    "comments": false,
+    "optional": [
+      "runtime",
+      "optimisation.modules.system"
+    ]
+  }
 });
 
 SystemJS.config({

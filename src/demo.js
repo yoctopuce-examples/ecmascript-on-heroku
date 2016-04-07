@@ -1,12 +1,15 @@
-import { YAPI, YAPIContext, YModule, YSensor, YErrorMsg } from 'yoctolib-es';
+import { YAPI, YAPIContext, YModule, YRelay, YErrorMsg } from 'yoctolib-es';
 
 var server = YAPI._nodeRequire('http').createServer();
 var url = YAPI._nodeRequire('url');
 var WebSocketServer = YAPI._nodeRequire('ws').Server;
 var express = YAPI._nodeRequire('express');
 
+var Relays = {};
+
 async function WebSocketCallbackHandler(ws)
 {
+    let hwids = [];
     let errmsg = new YErrorMsg();
     let yctx = new YAPIContext();
     try {
@@ -18,19 +21,23 @@ async function WebSocketCallbackHandler(ws)
         }
 
         // Enumerate relays
-        await yctx.UpdateDeviceList(errmsg);
         let relay = YRelay.FirstRelayInContext(yctx);
         while(relay) {
-            console.log('Relay found: '+(await module.get_friendlyName()));
+            let hwid = await relay.get_hardwareId();
+            hwids.push(hwid);
+            Relays[hwid] = relay;
             relay = relay.nextRelay();
         }
 
-        // Stay connected
-        for(let i = 0; i < 100; i++) {
-            await yctx.Sleep(300);
-        }
+        // Keep the calling hub connected for a 30 seconds
+        await yctx.Sleep(30000);
     } catch(e) {
         console.log('Caught exception in WS code', e);
+    }
+
+    // Remove relays from list before disconnecting
+    for(let i = 0; i < hwids.length; i++) {
+        delete Relays[hwids[i]];
     }
     // Free ressources
     yctx.FreeAPI();
@@ -50,6 +57,10 @@ app.use(express.static(__dirname + '/public'));
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 app.get('/', function(request, response) {
+    if(request.query.relay && Relays[request.query.relay]) {
+        Relays[request.query.relay].set_state(request.query.state);
+    }
+    app.locals.Relays = Relays;
     response.render('index');
 });
 

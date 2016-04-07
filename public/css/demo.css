@@ -1,0 +1,17 @@
+BODY {
+    font-family: sans-serif;
+}
+
+A.button {
+    display: inline-block;
+    text-decoration: none;
+    background: #eef;
+    color: navy;
+    padding: 2px 4px 2px 4px;
+    border: 1px solid gray;
+    border-radius: 4px;
+}
+
+TABLE.noborder TR TD {
+    padding: 5px;
+}
