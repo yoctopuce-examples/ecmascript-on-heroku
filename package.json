@@ -9,7 +9,7 @@
   "dependencies": {
     "express": "4.13.3",
     "jade": "^1.11.0",
-    "ws": "^1.0.1"
+    "ws": "^6.2.1"
   },
   "devDependencies": {
     "jspm": "~0.17.0-beta.12"
